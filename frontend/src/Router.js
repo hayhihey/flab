@@ -1,0 +1,31 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Auth } from '@/pages/Auth';
+import { RiderHome } from '@/pages/RiderHome';
+import { RideWaiting } from '@/pages/RideWaiting';
+import { DriverHome } from '@/pages/DriverHome';
+import { Profile } from '@/pages/Profile';
+import { Dashboard } from '@/pages/Dashboard';
+import { RideHistory } from '@/pages/RideHistory';
+import { FareCalculator } from '@/pages/FareCalculator';
+import { Wallet } from '@/pages/Wallet';
+import { ParcelDelivery } from '@/pages/ParcelDelivery';
+import { LoyaltyRewards } from '@/pages/LoyaltyRewards';
+import { Subscriptions } from '@/pages/Subscriptions';
+import { EditProfile } from '@/pages/EditProfile';
+import { Notifications } from '@/pages/Notifications';
+import { Safety } from '@/pages/Safety';
+import { Promotions } from '@/pages/Promotions';
+import { HelpSupport } from '@/pages/HelpSupport';
+import { Settings } from '@/pages/Settings';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { BottomNav } from '@/components/ui/BottomNav';
+import { useAuthStore } from '@/context/store';
+export const Router = () => {
+    const { loadFromStorage } = useAuthStore();
+    React.useEffect(() => {
+        loadFromStorage();
+    }, [loadFromStorage]);
+    return (_jsxs(BrowserRouter, { children: [_jsxs(Routes, { children: [_jsx(Route, { path: "/auth", element: _jsx(Auth, {}) }), _jsx(Route, { path: "/ride", element: _jsx(ProtectedRoute, { requiredRole: "rider", children: _jsx(RiderHome, {}) }) }), _jsx(Route, { path: "/waiting", element: _jsx(ProtectedRoute, { requiredRole: "rider", children: _jsx(RideWaiting, {}) }) }), _jsx(Route, { path: "/driver", element: _jsx(ProtectedRoute, { requiredRole: "driver", children: _jsx(DriverHome, {}) }) }), _jsx(Route, { path: "/dashboard", element: _jsx(ProtectedRoute, { children: _jsx(Dashboard, {}) }) }), _jsx(Route, { path: "/history", element: _jsx(ProtectedRoute, { children: _jsx(RideHistory, {}) }) }), _jsx(Route, { path: "/fare-calculator", element: _jsx(ProtectedRoute, { children: _jsx(FareCalculator, {}) }) }), _jsx(Route, { path: "/profile", element: _jsx(ProtectedRoute, { children: _jsx(Profile, {}) }) }), _jsx(Route, { path: "/wallet", element: _jsx(ProtectedRoute, { children: _jsx(Wallet, {}) }) }), _jsx(Route, { path: "/parcels", element: _jsx(ProtectedRoute, { children: _jsx(ParcelDelivery, {}) }) }), _jsx(Route, { path: "/loyalty", element: _jsx(ProtectedRoute, { children: _jsx(LoyaltyRewards, {}) }) }), _jsx(Route, { path: "/subscriptions", element: _jsx(ProtectedRoute, { children: _jsx(Subscriptions, {}) }) }), _jsx(Route, { path: "/profile/edit", element: _jsx(ProtectedRoute, { children: _jsx(EditProfile, {}) }) }), _jsx(Route, { path: "/notifications", element: _jsx(ProtectedRoute, { children: _jsx(Notifications, {}) }) }), _jsx(Route, { path: "/safety", element: _jsx(ProtectedRoute, { children: _jsx(Safety, {}) }) }), _jsx(Route, { path: "/promos", element: _jsx(ProtectedRoute, { children: _jsx(Promotions, {}) }) }), _jsx(Route, { path: "/support", element: _jsx(ProtectedRoute, { children: _jsx(HelpSupport, {}) }) }), _jsx(Route, { path: "/settings", element: _jsx(ProtectedRoute, { children: _jsx(Settings, {}) }) }), _jsx(Route, { path: "/", element: _jsx(Navigate, { to: "/dashboard", replace: true }) })] }), _jsx(BottomNav, {})] }));
+};

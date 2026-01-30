@@ -1,0 +1,83 @@
+import { useEffect, useRef, useState } from 'react';
+import { io, Socket } from 'socket.io-client';
+
+const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:4000';
+
+interface DriverLocation {
+  driverId: string;
+  lat: number;
+  lng: number;
+  heading?: number;
+  speedKph?: number;
+  rideId?: string;
+  updatedAt: Date;
+}
+
+interface RideStatusUpdate {
+  rideId: string;
+  status: string;
+  driverId?: string;
+  riderId?: string;
+  fare?: number;
+  paymentStatus?: string;
+}
+
+export function useSocket() {
+  const socketRef = useRef<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    socketRef.current = io(SOCKET_URL, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
+    });
+
+    socketRef.current.on('connect', () => {
+      console.log('Socket connected');
+      setIsConnected(true);
+    });
+
+    socketRef.current.on('disconnect', () => {
+      console.log('Socket disconnected');
+      setIsConnected(false);
+    });
+
+    return () => {
+      socketRef.current?.disconnect();
+    };
+  }, []);
+
+  const joinRide = (rideId: string) => {
+    socketRef.current?.emit('join:ride', { rideId });
+  };
+
+  const emitDriverLocation = (location: Omit<DriverLocation, 'updatedAt'>) => {
+    socketRef.current?.emit('driver:location', location);
+  };
+
+  const onDriverLocation = (callback: (location: DriverLocation) => void) => {
+    socketRef.current?.on('driver:location', callback);
+    return () => {
+      socketRef.current?.off('driver:location', callback);
+    };
+  };
+
+  const onRideStatus = (callback: (update: RideStatusUpdate) => void) => {
+    socketRef.current?.on('ride:status', callback);
+    return () => {
+      socketRef.current?.off('ride:status', callback);
+    };
+  };
+
+  return {
+    socket: socketRef.current,
+    isConnected,
+    joinRide,
+    emitDriverLocation,
+    onDriverLocation,
+    onRideStatus,
+    onRideRequest,
+  };
+}
