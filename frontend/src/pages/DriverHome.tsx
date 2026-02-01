@@ -16,6 +16,8 @@ interface AvailableRide {
   duration: number;
   status: string;
   createdAt: string;
+  vehicleType?: 'economy' | 'comfort' | 'premium' | 'xl' | 'bike';
+  surgePricing?: number;
 }
 
 export const DriverHome: React.FC = () => {
@@ -49,13 +51,32 @@ export const DriverHome: React.FC = () => {
     return () => clearInterval(interval);
   }, [isOnline, location, user?.id, currentRide?.id]);
 
-  // Join driver room for targeted ride requests - ALWAYS, independent of online status
+  // Join driver room for targeted ride requests - IMMEDIATE and with retry
   useEffect(() => {
-    if (user?.id) {
-      console.log(`🚗 Driver joining room: ${user.id}`);
+    if (!user?.id) return;
+    
+    console.log(`🚗 Driver setup: ${user.id}`);
+    
+    // Join immediately
+    console.log(`🔄 Immediate join attempt for ${user.id}`);
+    joinDriver(user.id);
+    
+    // Aggressive retry every 3 seconds for first 15 seconds
+    const retryInterval = setInterval(() => {
+      console.log(`🔄 Retry join for ${user.id}`);
       joinDriver(user.id);
-    }
-  }, [user?.id, joinDriver]);
+    }, 3000);
+    
+    // Stop retrying after 15 seconds
+    setTimeout(() => {
+      clearInterval(retryInterval);
+      console.log(`ℹ️ Stopped retry attempts for ${user.id}`);
+    }, 15000);
+    
+    return () => {
+      clearInterval(retryInterval);
+    };
+  }, [user?.id, joinDriver, isConnected]); // Add isConnected to deps
 
   // Listen for incoming ride requests - ALWAYS LISTEN, not just when online
   // This ensures requests are received even if online status changes after listener setup
@@ -222,6 +243,16 @@ export const DriverHome: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <Zap className="w-4 h-4 text-yellow-400" />
                             <span className="font-semibold text-sm">New Request</span>
+                            {/* Vehicle Type Badge */}
+                            <span className="bg-slate-700 text-slate-300 px-2 py-0.5 rounded text-xs font-medium uppercase">
+                              {ride.vehicleType || 'economy'}
+                            </span>
+                            {/* Surge Pricing Indicator */}
+                            {ride.surgePricing && ride.surgePricing > 1 && (
+                              <span className="bg-red-500/20 text-red-400 px-2 py-0.5 rounded text-xs font-bold">
+                                🔥 {ride.surgePricing.toFixed(1)}x SURGE
+                              </span>
+                            )}
                           </div>
                           <span className="bg-primary/20 text-primary px-2 py-1 rounded text-xs">
                             {formatCurrency(ride.fare)}
@@ -370,18 +401,36 @@ export const DriverHome: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="border-t border-slate-800 pt-4 grid grid-cols-3 gap-4">
-                  <div className="text-center">
-                    <div className="text-xs text-slate-400 mb-1">Distance</div>
-                    <div className="text-lg font-bold">{selectedRide.distance} km</div>
+                <div className="border-t border-slate-800 pt-4">
+                  {/* Vehicle Type & Surge */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="text-xs text-slate-400">Vehicle Type:</div>
+                      <div className="px-2 py-1 bg-primary/20 text-primary text-xs font-bold rounded capitalize">
+                        {selectedRide.vehicleType || 'economy'}
+                      </div>
+                    </div>
+                    {selectedRide.surgePricing && selectedRide.surgePricing > 1 && (
+                      <div className="px-2 py-1 bg-red-500/20 text-red-400 text-xs font-bold rounded">
+                        {selectedRide.surgePricing}x SURGE
+                      </div>
+                    )}
                   </div>
-                  <div className="text-center border-l border-r border-slate-800">
-                    <div className="text-xs text-slate-400 mb-1">Duration</div>
-                    <div className="text-lg font-bold">{selectedRide.duration} min</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xs text-slate-400 mb-1">Fare</div>
-                    <div className="text-lg font-bold text-primary">{formatCurrency(selectedRide.fare)}</div>
+                  
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <div className="text-xs text-slate-400 mb-1">Distance</div>
+                      <div className="text-lg font-bold">{selectedRide.distance} km</div>
+                    </div>
+                    <div className="text-center border-l border-r border-slate-800">
+                      <div className="text-xs text-slate-400 mb-1">Duration</div>
+                      <div className="text-lg font-bold">{selectedRide.duration} min</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-slate-400 mb-1">Fare</div>
+                      <div className="text-lg font-bold text-primary">{formatCurrency(selectedRide.fare)}</div>
+                    </div>
                   </div>
                 </div>
               </div>

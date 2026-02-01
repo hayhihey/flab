@@ -24,10 +24,9 @@ const acceptSchema = z.object({
   driverId: z.string().uuid()
 });
 
-const completeSchema = z.object({
-  actualDistanceKm: z.number().positive().optional(),
-  actualDurationMin: z.number().positive().optional(),
-  paymentMethod: z.enum(["cash", "card"] as const).optional()
+const cancelSchema = z.object({
+  reason: z.string().optional(),
+  cancelledBy: z.enum(["rider", "driver"] as const).optional()
 });
 
 const estimateSchema = z.object({

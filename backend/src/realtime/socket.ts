@@ -66,13 +66,29 @@ export function initSocket(server: HttpServer) {
     console.log(`✅ Client connected: ${socket.id}`);
     
     socket.on("join:driver", ({ driverId }: { driverId: string }) => {
+      console.log(`🚗 Driver join request: ${driverId} (socket: ${socket.id})`);
+      
       if (driverId) {
+        // Join the room
         socket.join(`driver:${driverId}`);
-        console.log(`🚗 Driver ${driverId} joined room driver:${driverId} (socket: ${socket.id})`);
         
-        // Confirm room membership
-        const rooms = Array.from(socket.rooms);
-        console.log(`📋 Socket ${socket.id} is now in rooms: ${rooms.join(', ')}`);
+        // Verify the join was successful
+        const isInRoom = socket.rooms.has(`driver:${driverId}`);
+        console.log(`✅ Join result: ${driverId} → ${isInRoom ? 'SUCCESS' : 'FAILED'}`);
+        console.log(`🔍 Socket rooms: [${Array.from(socket.rooms).join(', ')}]`);
+        
+        // Debug: Show all driver rooms across all sockets
+        const driverRooms = Array.from(io.sockets.adapter.rooms.keys())
+          .filter(room => room.startsWith('driver:'));
+        console.log(`🚪 Current driver rooms: ${driverRooms.length ? driverRooms.join(', ') : 'NONE'}`);
+        console.log(`🔌 Total connected clients: ${io.sockets.sockets.size}`);
+        
+        // Acknowledge the join
+        socket.emit('driver-joined', { 
+          driverId, 
+          success: isInRoom,
+          socketId: socket.id 
+        });
       } else {
         console.log(`❌ Invalid join:driver request - no driverId provided (socket: ${socket.id})`);
       }
@@ -112,6 +128,7 @@ export function emitRideRequest(payload: {
   pickupCoords?: { lat: number; lng: number };
   createdAt: Date | string;
   radiusKm?: number;
+  vehicleType?: string;
 }) {
   if (!io) return;
 
@@ -125,7 +142,8 @@ export function emitRideRequest(payload: {
     distance: payload.distanceKm,
     duration: payload.durationMin,
     status: "requested",
-    createdAt: payload.createdAt
+    createdAt: payload.createdAt,
+    vehicleType: payload.vehicleType || 'economy'
   };
 
   console.log(`\n🎯 BOLT-LIKE RIDE MATCHING INITIATED`);

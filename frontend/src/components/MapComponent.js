@@ -11,15 +11,12 @@ export const MapComponent = ({ center = { lat: 40.7128, lng: -74.006 }, zoom = 1
                 return;
             try {
                 await initMaps();
-                mapInstance.current = new window.google.maps.Map(mapRef.current, {
+                const mapConfig = {
                     zoom,
                     center,
                     mapTypeControl: false,
                     fullscreenControl: false,
                     zoomControl: true,
-                    // mapId is optional but recommended for Advanced Markers
-                    // If you have a map ID in Google Cloud Console, add it here
-                    // mapId: 'YOUR_MAP_ID',
                     styles: [
                         {
                             elementType: 'geometry',
@@ -44,7 +41,12 @@ export const MapComponent = ({ center = { lat: 40.7128, lng: -74.006 }, zoom = 1
                             stylers: [{ color: '#17263c' }],
                         },
                     ],
-                });
+                };
+                // Optionally add mapId if configured for Advanced Markers
+                if (import.meta.env.VITE_GOOGLE_MAPS_ID) {
+                    mapConfig.mapId = import.meta.env.VITE_GOOGLE_MAPS_ID;
+                }
+                mapInstance.current = new window.google.maps.Map(mapRef.current, mapConfig);
                 if (onMapReady)
                     onMapReady(mapInstance.current);
             }
@@ -61,31 +63,48 @@ export const MapComponent = ({ center = { lat: 40.7128, lng: -74.006 }, zoom = 1
         markersRef.current = [];
         const AdvancedMarkerElement = window.google?.maps?.marker?.AdvancedMarkerElement;
         markers.forEach(({ position, title, icon }) => {
-            if (AdvancedMarkerElement) {
-                const content = document.createElement('div');
-                content.className = 'rounded-full bg-white shadow-md px-2 py-1 text-sm font-semibold text-slate-900 flex items-center gap-1';
-                const pin = document.createElement('span');
-                pin.textContent = icon || '📍';
-                const text = document.createElement('span');
-                text.textContent = title;
-                content.appendChild(pin);
-                content.appendChild(text);
-                const marker = new AdvancedMarkerElement({
-                    map: mapInstance.current,
-                    position,
-                    title,
-                    content,
-                });
-                markersRef.current.push(marker);
+            try {
+                if (AdvancedMarkerElement) {
+                    const content = document.createElement('div');
+                    content.className = 'rounded-full bg-white shadow-md px-2 py-1 text-sm font-semibold text-slate-900 flex items-center gap-1';
+                    const pin = document.createElement('span');
+                    pin.textContent = icon || '📍';
+                    const text = document.createElement('span');
+                    text.textContent = title;
+                    content.appendChild(pin);
+                    content.appendChild(text);
+                    const marker = new AdvancedMarkerElement({
+                        map: mapInstance.current,
+                        position,
+                        title,
+                        content,
+                    });
+                    markersRef.current.push(marker);
+                }
+                else {
+                    const marker = new window.google.maps.Marker({
+                        position,
+                        map: mapInstance.current,
+                        title,
+                        icon: icon || undefined,
+                    });
+                    markersRef.current.push(marker);
+                }
             }
-            else {
-                const marker = new window.google.maps.Marker({
-                    position,
-                    map: mapInstance.current,
-                    title,
-                    icon: icon || undefined,
-                });
-                markersRef.current.push(marker);
+            catch (err) {
+                console.warn('Failed to create marker:', err);
+                // Fallback to standard marker
+                try {
+                    const marker = new window.google.maps.Marker({
+                        position,
+                        map: mapInstance.current,
+                        title,
+                    });
+                    markersRef.current.push(marker);
+                }
+                catch (fallbackErr) {
+                    console.error('Failed to create fallback marker:', fallbackErr);
+                }
             }
         });
     }, [markers]);

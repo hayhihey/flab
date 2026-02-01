@@ -30,7 +30,7 @@ export const Router: React.FC = () => {
   }, [loadFromStorage]);
 
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route path="/auth" element={<Auth />} />
         <Route
@@ -52,7 +52,9 @@ export const Router: React.FC = () => {
         <Route
           path="/driver"
           element={
-            <DriverHome />
+            <ProtectedRoute requiredRole="driver">
+              <DriverHome />
+            </ProtectedRoute>
           }
         />
         <Route

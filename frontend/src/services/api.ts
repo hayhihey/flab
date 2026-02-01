@@ -151,6 +151,8 @@ export const ridesAPI = {
     API.patch(`/rides/${rideId}/complete`, data),
   cancel: (rideId: string, reason?: string, cancelledBy?: 'rider' | 'driver') =>
     API.patch(`/rides/${rideId}/cancel`, { reason, cancelledBy }),
+  cancel: (rideId: string, reason?: string, cancelledBy?: 'rider' | 'driver') =>
+    API.patch(`/rides/${rideId}/cancel`, { reason, cancelledBy }),
   rate: (rideId: string, rating: number, review?: string, ratedBy: 'rider' | 'driver' = 'rider') =>
     API.post(`/rides/${rideId}/rate`, { rating, review, ratedBy }),
 

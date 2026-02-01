@@ -18,7 +18,7 @@ export const DriverHome = () => {
     const { location, error: locationError } = useGeolocation();
     const { user } = useAuthStore();
     const { currentRide, setCurrentRide } = useRideStore();
-    const { isConnected, emitDriverLocation, onRideRequest, onRideStatus, joinRide } = useSocket();
+    const { isConnected, emitDriverLocation, onRideRequest, onRideStatus, joinRide, joinDriver } = useSocket();
     // Send location updates when online
     useEffect(() => {
         if (!isOnline || !location || !user?.id)
@@ -33,6 +33,13 @@ export const DriverHome = () => {
         }, 5000);
         return () => clearInterval(interval);
     }, [isOnline, location, user?.id, currentRide?.id]);
+    // Join driver room when going online
+    useEffect(() => {
+        if (isOnline && user?.id && isConnected) {
+            console.log('🚗 Driver going online, joining room:', user.id);
+            joinDriver(user.id);
+        }
+    }, [isOnline, user?.id, isConnected]);
     // Listen for incoming ride requests
     useEffect(() => {
         if (!isOnline)

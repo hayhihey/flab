@@ -24,34 +24,91 @@ interface RideStatusUpdate {
   driver?: any;
 }
 
+// Global socket instance to prevent multiple connections in StrictMode
+let globalSocket: Socket | null = null;
+let initPromise: Promise<Socket> | null = null;
+
+function initializeSocket(): Promise<Socket> {
+  if (globalSocket && globalSocket.connected) {
+    console.log('♻️ Reusing existing socket:', globalSocket.id);
+    return Promise.resolve(globalSocket);
+  }
+
+  if (initPromise) {
+    console.log('⏳ Waiting for socket initialization...');
+    return initPromise;
+  }
+
+  initPromise = new Promise((resolve) => {
+    console.log('🔌 Initializing new socket connection to', SOCKET_URL);
+    globalSocket = io(SOCKET_URL, {
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: Infinity,
+      transports: ['websocket', 'polling'],
+      upgrade: true,
+    });
+
+    globalSocket.on('connect', () => {
+      console.log('✅ Socket connected:', globalSocket?.id);
+      initPromise = null;
+      resolve(globalSocket!);
+    });
+
+    globalSocket.on('connect_error', (error: any) => {
+      console.error('⚠️ Socket connection error:', error.message);
+    });
+
+    globalSocket.on('error', (error: any) => {
+      console.error('❌ Socket error:', error);
+    });
+  });
+
+  return initPromise;
+}
+
 export function useSocket() {
   const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    socketRef.current = io(SOCKET_URL, {
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
-    });
+    mountedRef.current = true;
 
-    socketRef.current.on('connect', () => {
-      console.log('✅ Socket connected:', socketRef.current?.id);
-      setIsConnected(true);
-    });
+    initializeSocket().then((socket) => {
+      if (!mountedRef.current) return;
 
-    socketRef.current.on('disconnect', () => {
-      console.log('❌ Socket disconnected');
-      setIsConnected(false);
-    });
+      socketRef.current = socket;
+      setIsConnected(socket.connected);
 
-    socketRef.current.on('error', (error) => {
-      console.error('❌ Socket error:', error);
+      // Listen for disconnect/reconnect
+      const handleDisconnect = () => {
+        if (mountedRef.current) {
+          console.log('📴 Socket disconnected');
+          setIsConnected(false);
+        }
+      };
+
+      const handleConnect = () => {
+        if (mountedRef.current) {
+          console.log('📡 Socket reconnected:', socket.id);
+          setIsConnected(true);
+        }
+      };
+
+      socket.on('disconnect', handleDisconnect);
+      socket.on('connect', handleConnect);
+
+      return () => {
+        socket.off('disconnect', handleDisconnect);
+        socket.off('connect', handleConnect);
+      };
     });
 
     return () => {
-      socketRef.current?.disconnect();
+      mountedRef.current = false;
+      // Don't disconnect global socket on unmount—it may be used by other components
     };
   }, []);
 
@@ -61,28 +118,25 @@ export function useSocket() {
 
   const joinDriver = (driverId: string) => {
     console.log(`🚗 Joining driver room for ${driverId}`);
-    console.log(`🔌 Socket state: ${socketRef.current ? 'exists' : 'null'}`);
-    console.log(`✅ Socket connected: ${isConnected}`);
+    console.log(`🔌 Socket connected: ${isConnected}`);
     
-    if (!socketRef.current) {
-      console.error('❌ Socket is null - cannot join driver room');
+    if (!socketRef.current || !socketRef.current.connected) {
+      console.error('❌ Socket not connected - waiting for connection...');
+      // Retry after 500ms
+      setTimeout(() => joinDriver(driverId), 500);
       return;
     }
     
-    if (!isConnected) {
-      console.warn('⚠️ Socket not connected - attempting to join anyway');
-    }
+    // Listen for join confirmation
+    socketRef.current.once('driver-joined', (data: any) => {
+      console.log(`✅ Driver join confirmed:`, data);
+      if (!data.success) {
+        console.error(`❌ Driver join failed for ${driverId}`);
+      }
+    });
     
     socketRef.current.emit('join:driver', { driverId });
     console.log(`📤 Emitted join:driver event for ${driverId}`);
-    
-    // Retry after 2 seconds if socket reconnects
-    setTimeout(() => {
-      if (socketRef.current && isConnected) {
-        console.log(`🔄 Retry join:driver for ${driverId}`);
-        socketRef.current.emit('join:driver', { driverId });
-      }
-    }, 2000);
   };
 
   const emitDriverLocation = (location: Omit<DriverLocation, 'updatedAt'>) => {

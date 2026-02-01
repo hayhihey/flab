@@ -204,14 +204,16 @@ export const RiderHome: React.FC = () => {
         paymentMethod: 'cash' as const,
         vehicleType: selectedVehicle,
       };
+      console.log('📨 Sending ride request payload:', rideData);
       
       const response = await ridesAPI.create(rideData);
+      console.log('✅ Ride request API response:', response.data);
       setCurrentRide(response.data.ride);
       joinRide(response.data.ride.id);
       // Navigate to waiting screen
       navigate('/waiting');
     } catch (err) {
-      console.error('Failed to request ride:', err);
+      console.error('❌ Failed to request ride:', err);
     } finally {
       setLoading(false);
     }
@@ -232,6 +234,15 @@ export const RiderHome: React.FC = () => {
       currency: 'NGN',
       minimumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const toNumber = (value: number | string | undefined | null, fallback = 0) => {
+    if (typeof value === 'number' && !Number.isNaN(value)) return value;
+    if (typeof value === 'string') {
+      const parsed = parseFloat(value);
+      if (!Number.isNaN(parsed)) return parsed;
+    }
+    return fallback;
   };
 
   return (
@@ -321,7 +332,7 @@ export const RiderHome: React.FC = () => {
                   <div>
                     <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold">Distance</p>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-black text-white tabular-nums">{estimate.distance.toFixed(1)}</span>
+                      <span className="text-4xl font-black text-white tabular-nums">{toNumber(estimate.distance).toFixed(1)}</span>
                       <span className="text-lg font-bold text-primary">KM</span>
                     </div>
                   </div>
@@ -337,7 +348,7 @@ export const RiderHome: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">ETA</p>
-                    <span className="text-xl font-bold text-white">{estimate.duration}<span className="text-sm text-slate-400 ml-1">min</span></span>
+                    <span className="text-xl font-bold text-white">{toNumber(estimate.duration)}<span className="text-sm text-slate-400 ml-1">min</span></span>
                   </div>
                 </div>
                 
@@ -348,7 +359,7 @@ export const RiderHome: React.FC = () => {
                 <div className="text-right">
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Fare</p>
                   <p className="text-2xl font-black bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-                    ₦{estimate.fare.toLocaleString()}
+                    ₦{toNumber(estimate.fare).toLocaleString()}
                   </p>
                 </div>
               </div>
