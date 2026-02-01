@@ -182,70 +182,53 @@ export function emitRideRequest(payload: {
     console.log(`🚗 Driver ${driverLoc.driverId}: ${distance.toFixed(2)}km, Ring ${ringInfo.ring}, Score: ${score.toFixed(1)}`);
   });
 
+  // 🔌 Only notify drivers that are actually connected (have a driver room)
+  const connectedDriverIds = new Set(
+    Array.from(io.sockets.adapter.rooms.keys())
+      .filter(room => room.startsWith('driver:'))
+      .map(room => room.replace('driver:', ''))
+  );
+
+  const connectedDriverScores = driverScores.filter(d => connectedDriverIds.has(d.driverId));
+  if (connectedDriverScores.length !== driverScores.length) {
+    console.log(`🔌 Connected drivers: ${connectedDriverScores.length}/${driverScores.length}`);
+  }
+
   // 🎯 STEP 2: Sort by score (highest first) and group by rings
-  driverScores.sort((a, b) => b.score - a.score);
+  connectedDriverScores.sort((a, b) => b.score - a.score);
   
   const ringGroups = {
-    1: driverScores.filter(d => d.ring === 1),
-    2: driverScores.filter(d => d.ring === 2),
-    3: driverScores.filter(d => d.ring === 3),
-    4: driverScores.filter(d => d.ring === 4)
+    1: connectedDriverScores.filter(d => d.ring === 1),
+    2: connectedDriverScores.filter(d => d.ring === 2),
+    3: connectedDriverScores.filter(d => d.ring === 3),
+    4: connectedDriverScores.filter(d => d.ring === 4)
   };
 
-  // 🚀 STEP 3: Multi-ring delivery with intelligent timing
-  let totalNotified = 0;
+  // 🚀 STEP 3: Broadcast to ALL connected drivers instantly (simplified for testing)
+  console.log(`\n📢 Broadcasting to ALL ${connectedDriverScores.length} connected drivers`);
   
-  // Ring 1: Instant delivery (0-2km)
-  if (ringGroups[1].length > 0) {
-    console.log(`\n⚡ RING 1 (INSTANT): Delivering to ${ringGroups[1].length} drivers`);
-    ringGroups[1].forEach(driver => {
-      io?.to(`driver:${driver.driverId}`).emit("ride:request", ridePayload);
-      console.log(`  ✅ Instant → ${driver.driverId} (${driver.distance.toFixed(2)}km, score: ${driver.score.toFixed(1)})`);
-    });
-    totalNotified += ringGroups[1].length;
-  }
+  connectedDriverScores.forEach(driver => {
+    io?.to(`driver:${driver.driverId}`).emit("ride:request", ridePayload);
+    console.log(`  ✅ Notified → ${driver.driverId} (${driver.distance.toFixed(2)}km, score: ${driver.score.toFixed(1)})`);
+  });
   
-  // Ring 2: 3-second delay (2-5km, top 10)
-  if (ringGroups[2].length > 0 && totalNotified === 0) {
-    setTimeout(() => {
-      const topDrivers = ringGroups[2].slice(0, 10);
-      console.log(`\n⏰ RING 2 (3s delay): Delivering to top ${topDrivers.length} drivers`);
-      topDrivers.forEach(driver => {
-        io?.to(`driver:${driver.driverId}`).emit("ride:request", ridePayload);
-        console.log(`  ⏱️ Delayed → ${driver.driverId} (${driver.distance.toFixed(2)}km, score: ${driver.score.toFixed(1)})`);
-      });
-    }, 3000);
-    totalNotified = -1; // Mark as handled
-  }
-  
-  // Ring 3: 8-second delay (5-15km, top 3)
-  if (ringGroups[3].length > 0 && totalNotified === 0) {
-    setTimeout(() => {
-      const topDrivers = ringGroups[3].slice(0, 3);
-      console.log(`\n🎯 RING 3 (8s delay): Delivering to top ${topDrivers.length} drivers`);
-      topDrivers.forEach(driver => {
-        io?.to(`driver:${driver.driverId}`).emit("ride:request", ridePayload);
-        console.log(`  🎯 Extended → ${driver.driverId} (${driver.distance.toFixed(2)}km, score: ${driver.score.toFixed(1)})`);
-      });
-    }, 8000);
-    totalNotified = -1; // Mark as handled
-  }
-  
-  // Ring 4: Emergency fallback (15km+)
-  if (ringGroups[4].length > 0 && totalNotified === 0) {
-    setTimeout(() => {
-      const bestDriver = ringGroups[4][0];
-      console.log(`\n🚨 RING 4 (EMERGENCY): Last resort delivery`);
-      io?.to(`driver:${bestDriver.driverId}`).emit("ride:request", { ...ridePayload, surgePricing: 1.5 });
-      console.log(`  🚨 Emergency → ${bestDriver.driverId} (${bestDriver.distance.toFixed(2)}km, SURGE 1.5x)`);
-    }, 15000);
-    totalNotified = -1; // Mark as handled
-  }
+  let totalNotified = connectedDriverScores.length;
   
   // Ultimate fallback: If no drivers in any ring, broadcast to all
   if (totalNotified === 0) {
     console.log(`\n📢 NO DRIVERS IN RANGE - Broadcasting to all connected clients`);
-    io.emit("ride:request", ridePayload);
+    // Broadcast to all drivers' rooms
+    const rooms = io.sockets.adapter.rooms;
+    const driverRooms = Array.from(rooms.keys()).filter(room => room.startsWith('driver:'));
+    if (driverRooms.length > 0) {
+      console.log(`📢 Broadcasting to ${driverRooms.length} driver rooms`);
+      driverRooms.forEach(room => {
+        io?.to(room).emit("ride:request", ridePayload);
+      });
+    } else {
+      // No driver rooms, broadcast globally
+      io.emit("ride:request", ridePayload);
+    }
     const clientCount = io.engine.clientsCount || 0;
     console.log(`📊 Emergency broadcast to ${clientCount} clients`);
   }

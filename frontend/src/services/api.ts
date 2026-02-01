@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const apiBaseUrl = import.meta.env.VITE_API_URL || '/api';
+
 const API = axios.create({
-  baseURL: '/api',
+  baseURL: apiBaseUrl,
   timeout: 30000,
 });
 
@@ -149,8 +151,6 @@ export const ridesAPI = {
     API.patch(`/rides/${rideId}/accept`, { driverId }),
   complete: (rideId: string, data?: any) =>
     API.patch(`/rides/${rideId}/complete`, data),
-  cancel: (rideId: string, reason?: string, cancelledBy?: 'rider' | 'driver') =>
-    API.patch(`/rides/${rideId}/cancel`, { reason, cancelledBy }),
   cancel: (rideId: string, reason?: string, cancelledBy?: 'rider' | 'driver') =>
     API.patch(`/rides/${rideId}/cancel`, { reason, cancelledBy }),
   rate: (rideId: string, rating: number, review?: string, ratedBy: 'rider' | 'driver' = 'rider') =>

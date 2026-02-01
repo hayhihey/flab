@@ -23,6 +23,14 @@ export const DriverHome = () => {
     useEffect(() => {
         if (!isOnline || !location || !user?.id)
             return;
+        // Send location immediately when going online
+        emitDriverLocation({
+            driverId: user.id,
+            lat: location.lat,
+            lng: location.lng,
+            rideId: currentRide?.id,
+        });
+        // Then send every 5 seconds
         const interval = setInterval(() => {
             emitDriverLocation({
                 driverId: user.id,
