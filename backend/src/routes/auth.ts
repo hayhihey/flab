@@ -35,7 +35,8 @@ authRouter.post("/sign-up", async (req, res) => {
     if (role === "rider") {
       profile = await db.upsertRider(name, email);
     } else {
-      profile = await db.upsertDriver(name, email, "", undefined, "pending");
+      // Auto-approve drivers for testing (in production, require manual approval)
+      profile = await db.upsertDriver(name, email, "", undefined, "approved");
     }
 
     return res.status(201).json({

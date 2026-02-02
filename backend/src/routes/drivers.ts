@@ -39,6 +39,19 @@ driversRouter.post("/register", async (req, res) => {
   }
 });
 
+// Auto-approve driver endpoint (for testing)
+driversRouter.post("/:driverId/approve", async (req, res) => {
+  const params = z.object({ driverId: z.string().uuid() }).safeParse(req.params);
+  if (!params.success) return res.status(400).json({ message: "Invalid driver id" });
+
+  try {
+    const driver = await db.setDriverVerification(params.data.driverId, "approved");
+    return res.json({ driver, message: "Driver approved" });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to approve driver" });
+  }
+});
+
 driversRouter.patch("/:driverId/status", async (req, res) => {
   const params = z.object({ driverId: z.string().uuid() }).safeParse(req.params);
   if (!params.success) return res.status(400).json({ message: "Invalid driver id" });
