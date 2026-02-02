@@ -240,6 +240,7 @@ export const ParcelDelivery: React.FC = () => {
                   value={formData.scheduledFor}
                   onChange={(e) => setFormData({ ...formData, scheduledFor: e.target.value })}
                   className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  aria-label="Schedule pickup time"
                 />
                 <p className="mt-2 text-xs text-slate-400">Leave blank for immediate pickup</p>
               </div>

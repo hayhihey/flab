@@ -58,6 +58,8 @@ export const SOSButton: React.FC<SOSButtonProps> = ({
       <button
         onClick={() => setShowModal(true)}
         className="fixed bottom-24 right-6 w-16 h-16 bg-red-600 hover:bg-red-700 rounded-full shadow-2xl flex items-center justify-center z-50 animate-pulse"
+        aria-label="Emergency SOS Button"
+        title="Emergency SOS"
       >
         <Shield className="w-8 h-8 text-white" />
       </button>

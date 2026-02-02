@@ -78,10 +78,12 @@ export function initSocket(server: HttpServer) {
         console.log(`🔍 Socket rooms: [${Array.from(socket.rooms).join(', ')}]`);
         
         // Debug: Show all driver rooms across all sockets
-        const driverRooms = Array.from(io.sockets.adapter.rooms.keys())
-          .filter(room => room.startsWith('driver:'));
-        console.log(`🚪 Current driver rooms: ${driverRooms.length ? driverRooms.join(', ') : 'NONE'}`);
-        console.log(`🔌 Total connected clients: ${io.sockets.sockets.size}`);
+        if (io && io.sockets && io.sockets.adapter) {
+          const driverRooms = Array.from(io.sockets.adapter.rooms.keys())
+            .filter(room => room.startsWith('driver:'));
+          console.log(`🚪 Current driver rooms: ${driverRooms.length ? driverRooms.join(', ') : 'NONE'}`);
+          console.log(`🔌 Total connected clients: ${io.sockets.sockets.size}`);
+        }
         
         // Acknowledge the join
         socket.emit('driver-joined', { 

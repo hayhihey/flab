@@ -98,34 +98,40 @@ export const ScheduledBooking: React.FC<ScheduledBookingProps> = ({ onSchedule }
       {(bookingType === 'scheduled' || bookingType === 'recurring') && (
         <div className="space-y-4 mb-6">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Date</label>
+            <label htmlFor="scheduled-date" className="block text-sm font-medium text-slate-300 mb-2">Date</label>
             <input
+              id="scheduled-date"
               type="date"
               value={scheduledDate}
               onChange={(e) => setScheduledDate(e.target.value)}
               min={new Date().toISOString().split('T')[0]}
               max={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
               className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"
+              aria-label="Select scheduled ride date"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Time</label>
+            <label htmlFor="scheduled-time" className="block text-sm font-medium text-slate-300 mb-2">Time</label>
             <input
+              id="scheduled-time"
               type="time"
               value={scheduledTime}
               onChange={(e) => setScheduledTime(e.target.value)}
               className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"
+              aria-label="Select scheduled ride time"
             />
           </div>
 
           {bookingType === 'recurring' && (
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Repeat Pattern</label>
+              <label htmlFor="recurring-pattern" className="block text-sm font-medium text-slate-300 mb-2">Repeat Pattern</label>
               <select
+                id="recurring-pattern"
                 value={recurringPattern}
                 onChange={(e) => setRecurringPattern(e.target.value)}
                 className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                aria-label="Select recurring ride pattern"
               >
                 <option value="">Select pattern</option>
                 <option value="daily_morning">Daily - Morning (same time)</option>

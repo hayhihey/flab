@@ -129,6 +129,8 @@ export const RideWaiting: React.FC = () => {
           onClick={() => !isCanceling && navigate('/ride')}
           className="absolute top-4 left-4 z-20 p-3 bg-slate-900/90 backdrop-blur-xl rounded-full border border-slate-700/50 hover:border-primary/50 transition shadow-lg disabled:opacity-50"
           disabled={isCanceling}
+          aria-label="Go back to ride booking"
+          title="Back"
         >
           <X className="w-5 h-5 text-slate-300" />
         </button>
@@ -183,14 +185,27 @@ export const RideWaiting: React.FC = () => {
                   onClick={() => {
                     if (driver.phone) {
                       window.location.href = `tel:${driver.phone}`;
+                    } else {
+                      alert('Driver phone number not available');
                     }
                   }}
                   className="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-lg flex items-center justify-center gap-2 transition"
+                  aria-label="Call driver"
                 >
                   <Phone className="w-4 h-4" />
                   Call
                 </button>
-                <button className="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-lg flex items-center justify-center gap-2 transition">
+                <button
+                  onClick={() => {
+                    if (driver.phone) {
+                      window.location.href = `sms:${driver.phone}`;
+                    } else {
+                      alert('Driver phone number not available');
+                    }
+                  }}
+                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-lg flex items-center justify-center gap-2 transition"
+                  aria-label="Message driver"
+                >
                   <MessageCircle className="w-4 h-4" />
                   Message
                 </button>
@@ -275,16 +290,19 @@ export const RideWaiting: React.FC = () => {
           )}
         </div>
 
-        {/* Cancel Button */}
-        <div className="p-6 border-t border-slate-800">
-          <button
-            onClick={handleCancelRide}
-            disabled={isCanceling || isInProgress}
-            className="w-full py-3 bg-slate-800 hover:bg-red-600/20 hover:border-red-600/50 border border-slate-700 text-slate-200 hover:text-red-400 font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isCanceling ? 'Canceling...' : isInProgress ? 'Ride In Progress' : 'Cancel Ride'}
-          </button>
-        </div>
+        {/* Cancel Button - Only show when no driver is assigned yet */}
+        {!isAccepted && !isInProgress && (
+          <div className="p-6 border-t border-slate-800">
+            <button
+              onClick={handleCancelRide}
+              disabled={isCanceling}
+              className="w-full py-3 bg-slate-800 hover:bg-red-600/20 hover:border-red-600/50 border border-slate-700 text-slate-200 hover:text-red-400 font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Cancel ride request"
+            >
+              {isCanceling ? 'Canceling...' : 'Cancel Ride'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

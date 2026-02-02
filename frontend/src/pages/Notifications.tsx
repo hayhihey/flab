@@ -177,6 +177,8 @@ export const Notifications: React.FC = () => {
                     deleteNotification(notification.id);
                   }}
                   className="flex-shrink-0 p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 h-fit"
+                  aria-label="Delete notification"
+                  title="Delete notification"
                 >
                   <X className="w-4 h-4" />
                 </button>

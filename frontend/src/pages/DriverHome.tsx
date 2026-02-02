@@ -206,6 +206,8 @@ export const DriverHome: React.FC = () => {
                   className={`relative inline-flex h-8 w-14 items-center rounded-full transition ${
                     isOnline ? 'bg-green-500' : 'bg-slate-600'
                   }`}
+                  aria-label="Toggle online status"
+                  title={isOnline ? 'Go offline' : 'Go online'}
                 >
                   <span
                     className={`inline-block h-6 w-6 transform rounded-full bg-white transition ${
@@ -374,6 +376,8 @@ export const DriverHome: React.FC = () => {
                     setSelectedRide(null);
                   }}
                   className="p-2 hover:bg-slate-800 rounded-lg transition"
+                  aria-label="Close ride details"
+                  title="Close"
                 >
                   <X className="w-5 h-5" />
                 </button>

@@ -141,7 +141,11 @@ export const Promotions: React.FC = () => {
                         </button>
                       </div>
                     </div>
-                    <button className="p-3 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 rounded-xl transition-all duration-300 shadow-lg shadow-primary-500/30">
+                    <button 
+                      className="p-3 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 rounded-xl transition-all duration-300 shadow-lg shadow-primary-500/30"
+                      aria-label="Apply promotion"
+                      title="Apply promotion"
+                    >
                       <ArrowRight className="w-5 h-5 text-white" />
                     </button>
                   </div>

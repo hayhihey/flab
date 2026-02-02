@@ -78,6 +78,7 @@ export const EditProfile: React.FC = () => {
                     accept="image/*"
                     onChange={handlePhotoChange}
                     className="hidden"
+                    aria-label="Upload profile photo"
                   />
                 </label>
               </div>
