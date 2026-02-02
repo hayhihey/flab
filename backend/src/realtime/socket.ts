@@ -65,7 +65,7 @@ export function initSocket(server: HttpServer) {
   io.on("connection", (socket) => {
     console.log(`✅ Client connected: ${socket.id}`);
     
-    socket.on("join:driver", ({ driverId }: { driverId: string }) => {
+    socket.on("join:driver", async ({ driverId, vehicleType }: { driverId: string; vehicleType?: string }) => {
       console.log(`🚗 Driver join request: ${driverId} (socket: ${socket.id})`);
       
       if (driverId) {
@@ -83,6 +83,40 @@ export function initSocket(server: HttpServer) {
             .filter(room => room.startsWith('driver:'));
           console.log(`🚪 Current driver rooms: ${driverRooms.length ? driverRooms.join(', ') : 'NONE'}`);
           console.log(`🔌 Total connected clients: ${io.sockets.sockets.size}`);
+        }
+        
+        // Fetch and send pending rides to the driver
+        try {
+          const { db } = await import('../services/db');
+          const pendingRides = await db.getPendingRides(vehicleType);
+          
+          if (pendingRides.length > 0) {
+            console.log(`📨 Sending ${pendingRides.length} pending ride(s) to driver ${driverId}`);
+            
+            // Send each pending ride to the driver
+            pendingRides.forEach((ride: any) => {
+              socket.emit('ride:request', {
+                id: ride.id,
+                riderId: ride.rider_id,
+                pickup: ride.pickup || ride.pickup_address,
+                dropoff: ride.dropoff || ride.dropoff_address,
+                fare: ride.fare,
+                distance: ride.distance_km,
+                duration: ride.duration_min,
+                status: ride.status,
+                createdAt: ride.created_at,
+                vehicleType: ride.vehicle_type || 'economy',
+                pickupCoords: ride.pickup_lat && ride.pickup_lng ? 
+                  { lat: ride.pickup_lat, lng: ride.pickup_lng } : undefined,
+                dropoffCoords: ride.dropoff_lat && ride.dropoff_lng ? 
+                  { lat: ride.dropoff_lat, lng: ride.dropoff_lng } : undefined
+              });
+            });
+          } else {
+            console.log(`📭 No pending rides for driver ${driverId}`);
+          }
+        } catch (error) {
+          console.error(`❌ Error fetching pending rides for driver ${driverId}:`, error);
         }
         
         // Acknowledge the join

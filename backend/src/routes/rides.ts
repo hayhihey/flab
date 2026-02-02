@@ -163,6 +163,18 @@ ridesRouter.post("/", async (req, res) => {
   }
 });
 
+// Get pending rides available for drivers
+ridesRouter.get("/pending", async (req, res) => {
+  try {
+    const vehicleType = req.query.vehicleType as string | undefined;
+    const pendingRides = await db.getPendingRides(vehicleType);
+    return res.json({ rides: pendingRides });
+  } catch (error) {
+    console.error('Error fetching pending rides:', error);
+    return res.status(500).json({ message: "Failed to fetch pending rides" });
+  }
+});
+
 ridesRouter.get("/:rideId", async (req, res) => {
   const params = z.object({ rideId: z.string().uuid() }).safeParse(req.params);
   if (!params.success) return res.status(400).json({ message: "Invalid ride id" });

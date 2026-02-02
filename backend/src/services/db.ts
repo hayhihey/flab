@@ -255,6 +255,24 @@ export const db = {
     return data || [];
   },
 
+  // Get pending rides that haven't been accepted yet
+  getPendingRides: async (vehicleType?: string) => {
+    let query = supabase
+      .from("rides")
+      .select("*")
+      .eq("status", "requested")
+      .is("driver_id", null)
+      .order("created_at", { ascending: false });
+
+    if (vehicleType) {
+      query = query.eq("vehicle_type", vehicleType);
+    }
+
+    const { data, error } = await query;
+    if (error) throw new Error(`Failed to get pending rides: ${error.message}`);
+    return data || [];
+  },
+
   // Driver Location methods
   setDriverLocation: async (
     driverId: string,
