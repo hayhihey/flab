@@ -24,13 +24,19 @@ export const Auth: React.FC = () => {
     try {
       if (mode === 'signup') {
         const response = await authAPI.signUp(email, password, role, name);
-        const { token, profile } = response.data;
-        setAuth(token, profile);
+        const { token, profile, refreshToken, expiresIn } = response.data;
+        if (refreshToken) {
+          localStorage.setItem('refresh_token', refreshToken);
+        }
+        setAuth(token, profile, expiresIn);
         navigate(role === 'driver' ? '/driver' : '/ride');
       } else {
         const response = await authAPI.signIn(email, password);
-        const { token, profile } = response.data;
-        setAuth(token, profile);
+        const { token, profile, refreshToken, expiresIn } = response.data;
+        if (refreshToken) {
+          localStorage.setItem('refresh_token', refreshToken);
+        }
+        setAuth(token, profile, expiresIn);
         const nextRole = (profile as any)?.role;
         navigate(nextRole === 'driver' ? '/driver' : '/ride');
       }

@@ -42,6 +42,8 @@ authRouter.post("/sign-up", async (req, res) => {
     return res.status(201).json({
       message: "Sign up successful",
       token: session.access_token,
+      refreshToken: session.refresh_token,
+      expiresIn: 30 * 24 * 60 * 60, // 30 days in seconds
       user: { id: user.id, email },
       profile
     });
@@ -73,6 +75,8 @@ authRouter.post("/sign-in", async (req, res) => {
     return res.json({
       message: "Sign in successful",
       token: session.access_token,
+      refreshToken: session.refresh_token,
+      expiresIn: 30 * 24 * 60 * 60, // 30 days in seconds
       user: { id: user.id, email },
       profile
     });

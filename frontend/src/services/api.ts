@@ -7,13 +7,46 @@ const API = axios.create({
   timeout: 30000,
 });
 
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+API.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('auth_token');
+    const expiry = localStorage.getItem('token_expiry');
+    
+    // Check if token is expired
+    if (expiry && Date.now() >= parseInt(expiry, 10)) {
+      console.log('⚠️ Token expired, redirecting to login...');
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      localStorage.removeItem('token_expiry');
+      window.location.href = '/auth';
+      return Promise.reject(new Error('Token expired'));
+    }
+    
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-  return config;
-});
+);
+
+// Add response interceptor for handling 401 errors
+API.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      console.log('⚠️ Unauthorized, clearing session...');
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      localStorage.removeItem('token_expiry');
+      localStorage.removeItem('refresh_token');
+      window.location.href = '/auth';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const authAPI = {
   signUp: (email: string, password: string, role: 'rider' | 'driver', name: string) =>

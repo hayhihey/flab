@@ -6,10 +6,13 @@ interface AuthState {
   user: (User | Driver) | null;
   role: 'rider' | 'driver' | 'admin' | null;
   isAuthenticated: boolean;
-  setAuth: (token: string, user: User | Driver) => void;
+  tokenExpiry: number | null;
+  setAuth: (token: string, user: User | Driver, expiresIn?: number) => void;
   updateUser: (userData: Partial<User | Driver>) => void;
   logout: () => void;
   loadFromStorage: () => void;
+  isTokenExpired: () => boolean;
+  refreshAuth: () => Promise<boolean>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -17,14 +20,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   role: null,
   isAuthenticated: false,
-  setAuth: (token, user) => {
+  tokenExpiry: null,
+  setAuth: (token, user, expiresIn = 30 * 24 * 60 * 60) => {
+    // Default 30 days expiration
+    const expiry = Date.now() + (expiresIn * 1000);
     localStorage.setItem('auth_token', token);
     localStorage.setItem('auth_user', JSON.stringify(user));
+    localStorage.setItem('token_expiry', expiry.toString());
     set({
       token,
       user,
       role: (user as any).role,
       isAuthenticated: true,
+      tokenExpiry: expiry,
     });
   },
   updateUser: (userData) => {
@@ -38,24 +46,69 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
+    localStorage.removeItem('token_expiry');
+    localStorage.removeItem('refresh_token');
     set({
       token: null,
       user: null,
       role: null,
       isAuthenticated: false,
+      tokenExpiry: null,
     });
   },
   loadFromStorage: () => {
     const token = localStorage.getItem('auth_token');
     const userStr = localStorage.getItem('auth_user');
-    if (token && userStr) {
+    const expiryStr = localStorage.getItem('token_expiry');
+    
+    if (token && userStr && expiryStr) {
+      const expiry = parseInt(expiryStr, 10);
       const user = JSON.parse(userStr);
-      set({
-        token,
-        user,
-        role: (user as any).role,
-        isAuthenticated: true,
-      });
+      
+      // Check if token is expired
+      if (Date.now() < expiry) {
+        set({
+          token,
+          user,
+          role: (user as any).role,
+          isAuthenticated: true,
+          tokenExpiry: expiry,
+        });
+        console.log('✅ Session restored. Expires in:', Math.round((expiry - Date.now()) / (1000 * 60 * 60 * 24)), 'days');
+      } else {
+        // Token expired, clear storage
+        console.log('⚠️ Session expired. Please login again.');
+        get().logout();
+      }
+    }
+  },
+  isTokenExpired: () => {
+    const { tokenExpiry } = get();
+    if (!tokenExpiry) return true;
+    return Date.now() >= tokenExpiry;
+  },
+  refreshAuth: async () => {
+    try {
+      const { user } = get();
+      if (!user || !user.email) return false;
+      
+      // Re-authenticate with stored credentials (if available)
+      // In production, you'd use a refresh token endpoint
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (refreshToken) {
+        // Call refresh token endpoint (to be implemented on backend)
+        console.log('🔄 Attempting to refresh token...');
+        // For now, just extend the current token
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          get().setAuth(token, user);
+          return true;
+        }
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to refresh auth:', error);
+      return false;
     }
   },
 }));
