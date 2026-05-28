@@ -29,6 +29,14 @@ const cancelSchema = z.object({
   cancelledBy: z.enum(["rider", "driver"] as const).optional()
 });
 
+const completeSchema = z.object({
+  actualFare: z.number().positive().optional(),
+  actualDistanceKm: z.number().positive().optional(),
+  actualDurationMin: z.number().positive().optional(),
+  paymentMethod: z.enum(["cash", "card"]).optional(),
+  notes: z.string().optional()
+});
+
 const estimateSchema = z.object({
   distanceKm: z.number().positive(),
   durationMin: z.number().positive(),
@@ -443,27 +451,50 @@ ridesRouter.patch("/:rideId/cancel", async (req, res) => {
     cancelledBy: z.enum(["rider", "driver"]).optional()
   });
   const body = schema.safeParse(req.body);
+  if (!body.success) return res.status(400).json({ message: "Invalid payload", issues: body.error.issues });
 
   try {
     const ride = await db.getRide(params.data.rideId);
     if (!ride) return res.status(404).json({ message: "Ride not found" });
-    if (ride.status === "completed" || ride.status === "cancelled") {
-      return res.status(409).json({ message: "Ride cannot be cancelled" });
+    
+    // Prevent canceling already completed or cancelled rides
+    if (ride.status === "completed") {
+      return res.status(409).json({ message: "Cannot cancel a completed ride" });
+    }
+    if (ride.status === "cancelled") {
+      return res.status(409).json({ message: "Ride is already cancelled" });
     }
 
+    // Store previous status for logging
+    const previousStatus = ride.status;
+
+    // Update ride status
     ride.status = "cancelled";
-    ride.cancellation_reason = body.data?.reason;
+    ride.cancellation_reason = body.data?.reason || "No reason provided";
     ride.cancelled_by = body.data?.cancelledBy || "rider";
+    ride.updated_at = new Date().toISOString();
+    
     await db.saveRide(ride);
 
+    console.log(`🚫 Ride ${ride.id} cancelled`);
+    console.log(`   Previous status: ${previousStatus}`);
+    console.log(`   Cancelled by: ${ride.cancelled_by}`);
+    console.log(`   Reason: ${ride.cancellation_reason}`);
+
+    // Emit real-time cancellation event to all parties
     emitRideStatus(ride.id, "cancelled", { 
       driverId: ride.driver_id, 
       riderId: ride.rider_id,
-      reason: body.data?.reason 
+      reason: ride.cancellation_reason,
+      cancelledBy: ride.cancelled_by 
     });
 
-    return res.json({ ride });
+    return res.json({ 
+      ride,
+      message: "Ride cancelled successfully"
+    });
   } catch (error) {
+    console.error("Failed to cancel ride:", error);
     return res.status(500).json({ message: "Failed to cancel ride" });
   }
 });

@@ -24,17 +24,15 @@ export const RideEstimate: React.FC<RideEstimateProps> = ({
   breakdown,
 }) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-slide-up">
       {/* HERO: Distance Display - Ultra Premium Design */}
       {distance !== undefined && duration !== undefined && (
-        <div className="relative overflow-hidden group">
-          {/* Animated gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-transparent to-secondary/30 opacity-60 group-hover:opacity-80 transition-opacity duration-700" />
-          <div className="absolute -top-20 -right-20 w-60 h-60 bg-primary/20 rounded-full blur-[100px] animate-pulse" />
-          <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-secondary/20 rounded-full blur-[100px] animate-pulse delay-500" />
+        <div className="relative overflow-hidden group animate-scale-in">\n          {/* Animated gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-transparent to-secondary/30 opacity-60 group-hover:opacity-80 transition-opacity duration-500\" />
+          <div className="absolute -top-20 -right-20 w-60 h-60 bg-primary/20 rounded-full blur-[100px] animate-pulse\" />\n          <div className=\"absolute -bottom-20 -left-20 w-60 h-60 bg-secondary/20 rounded-full blur-[100px] animate-pulse delay-500\" />
           
           {/* Glass morphism card */}
-          <div className="relative bg-gradient-to-br from-slate-900/98 via-slate-800/95 to-slate-900/98 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-2xl">
+          <div className="relative bg-gradient-to-br from-slate-900/98 via-slate-800/95 to-slate-900/98 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-2xl transition-all duration-300 hover:shadow-primary/20 hover:border-primary/20\">
             {/* Header Badge */}
             <div className="flex justify-center pt-5">
               <div className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full border border-primary/30">
@@ -71,12 +69,12 @@ export const RideEstimate: React.FC<RideEstimateProps> = ({
             {/* Stats Row - Premium Glassmorphism */}
             <div className="grid grid-cols-2 gap-3 px-5 pb-5">
               {/* ETA Card */}
-              <div className="relative group/card overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-500" />
-                <div className="relative bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 border border-slate-700/50 hover:border-blue-500/30 transition-all duration-300">
+              <div className="relative group/card overflow-hidden animate-slide-up animation-delay-100">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
+                <div className="relative bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 border border-slate-700/50 hover:border-blue-500/30 transition-all duration-200 group-hover/card:shadow-lg group-hover/card:shadow-blue-500/20">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500/30 to-cyan-500/30 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                      <Clock className="w-6 h-6 text-blue-400" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500/30 to-cyan-500/30 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 transition-transform duration-200 group-hover/card:scale-110">
+                      <Clock className="w-6 h-6 text-blue-400\" />
                     </div>
                     <div className="flex-1">
                       <p className="text-[10px] text-slate-500 uppercase tracking-[0.15em] font-bold">Arrival</p>
@@ -90,12 +88,12 @@ export const RideEstimate: React.FC<RideEstimateProps> = ({
               </div>
 
               {/* Fare Card */}
-              <div className="relative group/card overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-500" />
-                <div className="relative bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 border border-slate-700/50 hover:border-emerald-500/30 transition-all duration-300">
+              <div className="relative group/card overflow-hidden animate-slide-up animation-delay-200">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
+                <div className="relative bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 border border-slate-700/50 hover:border-emerald-500/30 transition-all duration-200 group-hover/card:shadow-lg group-hover/card:shadow-emerald-500/20">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500/30 to-teal-500/30 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                      <Banknote className="w-6 h-6 text-emerald-400" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500/30 to-teal-500/30 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-transform duration-200 group-hover/card:scale-110">
+                      <Banknote className="w-6 h-6 text-emerald-400\" />
                     </div>
                     <div className="flex-1">
                       <p className="text-[10px] text-slate-500 uppercase tracking-[0.15em] font-bold">Fare</p>

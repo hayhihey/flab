@@ -6,6 +6,7 @@ import { useSocket } from '@/hooks/useSocket';
 import { MapComponent } from '@/components/MapComponent';
 import { useGeolocation } from '@/hooks';
 import { ridesAPI } from '@/services/api';
+import { toast } from '@/utils/toast';
 
 export const RideWaiting: React.FC = () => {
   const navigate = useNavigate();
@@ -17,6 +18,8 @@ export const RideWaiting: React.FC = () => {
   const [rideStatus, setRideStatus] = useState(currentRide?.status || 'requested');
   const [driver, setDriver] = useState<any>(null);
   const [isCanceling, setIsCanceling] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
 
   // Join ride room and listen for updates
   useEffect(() => {
@@ -68,11 +71,14 @@ export const RideWaiting: React.FC = () => {
     if (!currentRide?.id) return;
     setIsCanceling(true);
     try {
-      await ridesAPI.cancel(currentRide.id);
+      await ridesAPI.cancel(currentRide.id, cancelReason || 'Changed my mind', 'rider');
+      toast.success('Ride cancelled successfully');
       clearCurrentRide();
+      setShowCancelDialog(false);
       navigate('/ride');
     } catch (err) {
       console.error('Failed to cancel ride:', err);
+      toast.error('Failed to cancel ride. Please try again.');
       setIsCanceling(false);
     }
   };
@@ -294,16 +300,100 @@ export const RideWaiting: React.FC = () => {
         {!isAccepted && !isInProgress && (
           <div className="p-6 border-t border-slate-800">
             <button
-              onClick={handleCancelRide}
+              onClick={() => setShowCancelDialog(true)}
               disabled={isCanceling}
               className="w-full py-3 bg-slate-800 hover:bg-red-600/20 hover:border-red-600/50 border border-slate-700 text-slate-200 hover:text-red-400 font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Cancel ride request"
             >
-              {isCanceling ? 'Canceling...' : 'Cancel Ride'}
+              Cancel Ride
             </button>
           </div>
         )}
       </div>
+
+      {/* Cancel Confirmation Dialog */}
+      {showCancelDialog && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 space-y-6">
+              {/* Header */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-red-400">Cancel Ride?</h2>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Are you sure you want to cancel this ride?
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowCancelDialog(false);
+                    setCancelReason('');
+                  }}
+                  className="p-2 hover:bg-slate-800 rounded-lg transition"
+                  aria-label="Close dialog"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Reason Selection */}
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-slate-300">Reason for cancellation:</label>
+                <div className="space-y-2">
+                  {[
+                    'Changed my mind',
+                    'Found another ride',
+                    'Taking too long',
+                    'Wrong pickup location',
+                    'Emergency',
+                    'Other'
+                  ].map((reason) => (
+                    <button
+                      key={reason}
+                      onClick={() => setCancelReason(reason)}
+                      className={`w-full text-left px-4 py-3 rounded-lg border transition ${
+                        cancelReason === reason
+                          ? 'bg-red-500/20 border-red-500/50 text-red-300'
+                          : 'bg-slate-800/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:border-slate-600'
+                      }`}
+                    >
+                      {reason}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Warning */}
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                <p className="text-xs text-yellow-300">
+                  ⚠️ Frequent cancellations may affect your account standing.
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowCancelDialog(false);
+                    setCancelReason('');
+                  }}
+                  disabled={isCanceling}
+                  className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
+                >
+                  Keep Ride
+                </button>
+                <button
+                  onClick={handleCancelRide}
+                  disabled={isCanceling || !cancelReason}
+                  className="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCanceling ? 'Canceling...' : 'Yes, Cancel'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

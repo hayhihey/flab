@@ -74,18 +74,18 @@ export const Auth: React.FC = () => {
         {/* Logo & Branding */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 mb-4 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-2xl rotate-6 opacity-50 animate-pulse" />
-            <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-2xl -rotate-6 opacity-50 animate-pulse animation-delay-500" />
-            <div className="relative w-full h-full bg-gradient-to-br from-primary-500 to-secondary-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-primary-500/30">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl rotate-6 opacity-50 animate-pulse" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl -rotate-6 opacity-50 animate-pulse animation-delay-500" />
+            <div className="relative w-full h-full bg-gradient-to-br from-primary-500 via-accent-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-primary-500/30">
               <MapPin className="w-10 h-10 text-white" />
             </div>
           </div>
-          <h1 className="text-4xl font-black bg-gradient-to-r from-white via-white to-slate-400 bg-clip-text text-transparent mb-2">
+          <h1 className="text-4xl font-black bg-gradient-to-r from-primary-400 via-accent-400 to-cyan-400 bg-clip-text text-transparent mb-2">
             RideHub
           </h1>
           <p className="text-slate-400 flex items-center justify-center gap-2">
-            <Sparkles className="w-4 h-4 text-secondary-500" />
-            The Future of Mobility
+            <Sparkles className="w-4 h-4 text-accent-500" />
+            Move smarter, every day
             <Sparkles className="w-4 h-4 text-primary-500" />
           </p>
         </div>

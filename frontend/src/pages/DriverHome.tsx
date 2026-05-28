@@ -5,6 +5,7 @@ import { useGeolocation } from '@/hooks';
 import { useSocket } from '@/hooks/useSocket';
 import { useAuthStore, useRideStore } from '@/context/store';
 import { ridesAPI } from '@/services/api';
+import { toast } from '@/utils/toast';
 
 interface AvailableRide {
   id: string;
@@ -29,6 +30,9 @@ export const DriverHome: React.FC = () => {
   const [acceptingRideId, setAcceptingRideId] = useState<string | null>(null);
   const [loadingRides, setLoadingRides] = useState(false);
   const [showRideDetail, setShowRideDetail] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [isCanceling, setIsCanceling] = useState(false);
   
   const { location, error: locationError } = useGeolocation();
   const { user } = useAuthStore();
@@ -125,6 +129,24 @@ export const DriverHome: React.FC = () => {
       alert('Failed to accept ride. Please try again.');
     } finally {
       setAcceptingRideId(null);
+    }
+  };
+
+  const handleCancelRide = async () => {
+    if (!currentRide?.id) return;
+    setIsCanceling(true);
+    try {
+      await ridesAPI.cancel(currentRide.id, cancelReason || 'Driver unavailable', 'driver');
+      toast.success('Ride cancelled successfully');
+      setCurrentRide(null);
+      setShowCancelDialog(false);
+      setCancelReason('');
+      setTodayStats(prev => ({ ...prev, rides: prev.rides })); // No penalty on stats
+    } catch (err) {
+      console.error('Failed to cancel ride:', err);
+      toast.error('Failed to cancel ride. Please try again.');
+    } finally {
+      setIsCanceling(false);
     }
   };
 
@@ -315,6 +337,13 @@ export const DriverHome: React.FC = () => {
                     <span className="font-bold text-primary text-lg">{formatCurrency(currentRide.fare)}</span>
                   </div>
                 </div>
+                {/* Cancel Button */}
+                <button
+                  onClick={() => setShowCancelDialog(true)}
+                  className="w-full mt-3 py-2 bg-slate-800/80 hover:bg-red-600/20 hover:border-red-600/50 border border-slate-700 text-slate-300 hover:text-red-400 font-semibold rounded-lg transition text-sm"
+                >
+                  Cancel Ride
+                </button>
               </div>
             )}
 
@@ -456,6 +485,90 @@ export const DriverHome: React.FC = () => {
                   className="flex-1 py-3 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {acceptingRideId === selectedRide.id ? 'Accepting...' : 'Accept Ride'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Confirmation Dialog for Driver */}
+      {showCancelDialog && currentRide && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 space-y-6">
+              {/* Header */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-red-400">Cancel Ride?</h2>
+                  <p className="text-sm text-slate-400 mt-1">
+                    This will notify the rider immediately.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowCancelDialog(false);
+                    setCancelReason('');
+                  }}
+                  className="p-2 hover:bg-slate-800 rounded-lg transition"
+                  aria-label="Close dialog"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Reason Selection */}
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-slate-300">Reason for cancellation:</label>
+                <div className="space-y-2">
+                  {[
+                    'Vehicle issue',
+                    'Traffic/delay',
+                    'Personal emergency',
+                    'Cannot reach pickup',
+                    'Wrong location',
+                    'Other'
+                  ].map((reason) => (
+                    <button
+                      key={reason}
+                      onClick={() => setCancelReason(reason)}
+                      className={`w-full text-left px-4 py-3 rounded-lg border transition ${
+                        cancelReason === reason
+                          ? 'bg-red-500/20 border-red-500/50 text-red-300'
+                          : 'bg-slate-800/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:border-slate-600'
+                      }`}
+                    >
+                      {reason}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Warning */}
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                <p className="text-xs text-yellow-300">
+                  ⚠️ Frequent cancellations may affect your driver rating and ride requests.
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowCancelDialog(false);
+                    setCancelReason('');
+                  }}
+                  disabled={isCanceling}
+                  className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
+                >
+                  Keep Ride
+                </button>
+                <button
+                  onClick={handleCancelRide}
+                  disabled={isCanceling || !cancelReason}
+                  className="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCanceling ? 'Canceling...' : 'Yes, Cancel'}
                 </button>
               </div>
             </div>

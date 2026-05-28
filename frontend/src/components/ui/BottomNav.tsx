@@ -9,10 +9,10 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { icon: <Home className="w-5 h-5" />, label: 'Home', path: '/dashboard' },
+  { icon: <Home className="w-5 h-5" />, label: 'Dashboard', path: '/dashboard' },
   { icon: <Map className="w-5 h-5" />, label: 'Ride', path: '/ride' },
   { icon: <Wallet className="w-5 h-5" />, label: 'Wallet', path: '/wallet' },
-  { icon: <Calculator className="w-5 h-5" />, label: 'Fares', path: '/fare-calculator' },
+  { icon: <Calculator className="w-5 h-5" />, label: 'Fare Est.', path: '/fare-calculator' },
   { icon: <User className="w-5 h-5" />, label: 'Profile', path: '/profile' },
 ];
 

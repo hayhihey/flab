@@ -21,14 +21,20 @@ export const Auth = () => {
         try {
             if (mode === 'signup') {
                 const response = await authAPI.signUp(email, password, role, name);
-                const { token, profile } = response.data;
-                setAuth(token, profile);
+                const { token, profile, refreshToken, expiresIn } = response.data;
+                if (refreshToken) {
+                    localStorage.setItem('refresh_token', refreshToken);
+                }
+                setAuth(token, profile, expiresIn);
                 navigate(role === 'driver' ? '/driver' : '/ride');
             }
             else {
                 const response = await authAPI.signIn(email, password);
-                const { token, profile } = response.data;
-                setAuth(token, profile);
+                const { token, profile, refreshToken, expiresIn } = response.data;
+                if (refreshToken) {
+                    localStorage.setItem('refresh_token', refreshToken);
+                }
+                setAuth(token, profile, expiresIn);
                 const nextRole = profile?.role;
                 navigate(nextRole === 'driver' ? '/driver' : '/ride');
             }
@@ -48,7 +54,7 @@ export const Auth = () => {
         !email ||
         !password ||
         (mode === 'signup' && (!name || password.length < 6));
-    return (_jsxs("div", { className: "min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4 relative overflow-hidden", children: [_jsxs("div", { className: "absolute inset-0 overflow-hidden pointer-events-none", children: [_jsx("div", { className: "absolute top-1/4 -left-20 w-96 h-96 bg-primary-500/20 rounded-full mix-blend-multiply filter blur-[100px] animate-blob" }), _jsx("div", { className: "absolute top-1/3 -right-20 w-96 h-96 bg-secondary-500/20 rounded-full mix-blend-multiply filter blur-[100px] animate-blob animation-delay-2000" }), _jsx("div", { className: "absolute -bottom-20 left-1/3 w-96 h-96 bg-purple-500/20 rounded-full mix-blend-multiply filter blur-[100px] animate-blob animation-delay-4000" })] }), _jsx("div", { className: "absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" }), _jsxs("div", { className: "w-full max-w-md relative z-10 animate-fade-in", children: [_jsxs("div", { className: "text-center mb-8", children: [_jsxs("div", { className: "inline-flex items-center justify-center w-20 h-20 mb-4 relative", children: [_jsx("div", { className: "absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-2xl rotate-6 opacity-50 animate-pulse" }), _jsx("div", { className: "absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-2xl -rotate-6 opacity-50 animate-pulse animation-delay-500" }), _jsx("div", { className: "relative w-full h-full bg-gradient-to-br from-primary-500 to-secondary-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-primary-500/30", children: _jsx(MapPin, { className: "w-10 h-10 text-white" }) })] }), _jsx("h1", { className: "text-4xl font-black bg-gradient-to-r from-white via-white to-slate-400 bg-clip-text text-transparent mb-2", children: "RideHub" }), _jsxs("p", { className: "text-slate-400 flex items-center justify-center gap-2", children: [_jsx(Sparkles, { className: "w-4 h-4 text-secondary-500" }), "The Future of Mobility", _jsx(Sparkles, { className: "w-4 h-4 text-primary-500" })] })] }), _jsxs("div", { className: "glass-card rounded-3xl p-8 shadow-2xl", children: [_jsxs("div", { className: "flex items-center justify-between mb-8", children: [_jsxs("div", { className: "flex bg-slate-900/60 rounded-xl p-1.5 border border-slate-700/50", children: [_jsxs("button", { onClick: () => {
+    return (_jsxs("div", { className: "min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4 relative overflow-hidden", children: [_jsxs("div", { className: "absolute inset-0 overflow-hidden pointer-events-none", children: [_jsx("div", { className: "absolute top-1/4 -left-20 w-96 h-96 bg-primary-500/20 rounded-full mix-blend-multiply filter blur-[100px] animate-blob" }), _jsx("div", { className: "absolute top-1/3 -right-20 w-96 h-96 bg-secondary-500/20 rounded-full mix-blend-multiply filter blur-[100px] animate-blob animation-delay-2000" }), _jsx("div", { className: "absolute -bottom-20 left-1/3 w-96 h-96 bg-purple-500/20 rounded-full mix-blend-multiply filter blur-[100px] animate-blob animation-delay-4000" })] }), _jsx("div", { className: "absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" }), _jsxs("div", { className: "w-full max-w-md relative z-10 animate-fade-in", children: [_jsxs("div", { className: "text-center mb-8", children: [_jsxs("div", { className: "inline-flex items-center justify-center w-20 h-20 mb-4 relative", children: [_jsx("div", { className: "absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl rotate-6 opacity-50 animate-pulse" }), _jsx("div", { className: "absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl -rotate-6 opacity-50 animate-pulse animation-delay-500" }), _jsx("div", { className: "relative w-full h-full bg-gradient-to-br from-primary-500 via-accent-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-primary-500/30", children: _jsx(MapPin, { className: "w-10 h-10 text-white" }) })] }), _jsx("h1", { className: "text-4xl font-black bg-gradient-to-r from-primary-400 via-accent-400 to-cyan-400 bg-clip-text text-transparent mb-2", children: "RideHub" }), _jsxs("p", { className: "text-slate-400 flex items-center justify-center gap-2", children: [_jsx(Sparkles, { className: "w-4 h-4 text-accent-500" }), "Smart Mobility Solutions", _jsx(Sparkles, { className: "w-4 h-4 text-primary-500" })] })] }), _jsxs("div", { className: "glass-card rounded-3xl p-8 shadow-2xl", children: [_jsxs("div", { className: "flex items-center justify-between mb-8", children: [_jsxs("div", { className: "flex bg-slate-900/60 rounded-xl p-1.5 border border-slate-700/50", children: [_jsxs("button", { onClick: () => {
                                                     setMode('signup');
                                                     setStep('role');
                                                     setError('');

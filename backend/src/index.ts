@@ -24,8 +24,23 @@ const server = createServer(app);
 
 initSocket(server);
 
-app.use(cors({ origin: config.allowedOrigins.includes("*") ? undefined : config.allowedOrigins }));
-app.use(helmet());
+// Configure CORS properly for preflight requests
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    if (!origin || config.allowedOrigins.includes("*") || config.allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(morgan("dev"));
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
@@ -52,5 +67,10 @@ app.use(notFound);
 app.use(errorHandler);
 
 server.listen(Number(config.port), () => {
-  console.log(`API listening on http://localhost:${config.port}`);
+  console.log(`
+╭──────────────────────────────────────╮
+│   🗺️  RideHub - Smart Mobility     │
+│     API running on port ${config.port}      │
+╰──────────────────────────────────────╯
+  `);
 });

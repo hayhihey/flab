@@ -24,7 +24,8 @@ export const LocationSearch: React.FC<LocationSearchProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
-  const debouncedInput = useDebounce(input, 300);
+  const [isFocused, setIsFocused] = useState(false);
+  const debouncedInput = useDebounce(input, 150);
   const sessionTokenRef = useRef<any | null>(null);
 
   const ensureSessionToken = () => {
@@ -148,15 +149,19 @@ export const LocationSearch: React.FC<LocationSearchProps> = ({
   return (
     <div className="relative w-full" ref={containerRef}>
       <div className="relative group">
-        <Search className="absolute left-12 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary transition-colors pointer-events-none z-10" />
+        <Search className="absolute left-12 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary transition-colors duration-200 pointer-events-none z-10" />
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => predictions.length > 0 && setIsOpen(true)}
+          onFocus={() => {
+            setIsFocused(true);
+            if (predictions.length > 0) setIsOpen(true);
+          }}
+          onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
-          className="w-full pl-16 pr-4 py-4 bg-slate-900/80 border border-slate-700/40 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 focus:bg-slate-900 transition-all duration-300 shadow-lg text-sm font-medium"
+          className="w-full pl-16 pr-4 py-4 bg-slate-900/80 border border-slate-700/40 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 focus:bg-slate-900 transition-all duration-200 shadow-lg text-sm font-medium"
         />
         {isLoading && (
           <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -166,25 +171,25 @@ export const LocationSearch: React.FC<LocationSearchProps> = ({
       </div>
 
       {isOpen && predictions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900/98 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl z-50 max-h-72 overflow-y-auto overflow-x-hidden animate-in slide-in-from-top-2 duration-200">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900/98 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl z-50 max-h-72 overflow-y-auto overflow-x-hidden animate-slide-in-bottom">
           <div className="py-2">
             {predictions.map((prediction, idx) => (
               <button
                 key={prediction.place_id}
                 onClick={() => handleSelect(prediction)}
-                className={`w-full text-left px-4 py-3 transition-all duration-150 ${
+                className={`w-full text-left px-4 py-3 transition-all duration-100 ${
                   idx === activeIndex 
-                    ? 'bg-primary/15' 
-                    : 'hover:bg-slate-800/60'
+                    ? 'bg-primary/20 border-l-2 border-primary' 
+                    : 'hover:bg-slate-800/60 border-l-2 border-transparent'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
                     idx === activeIndex 
-                      ? 'bg-primary/20' 
+                      ? 'bg-primary/25 shadow-lg shadow-primary/30' 
                       : 'bg-slate-800/80'
                   }`}>
-                    <MapPin className={`w-5 h-5 ${idx === activeIndex ? 'text-primary' : 'text-slate-400'}`} />
+                    <MapPin className={`w-5 h-5 transition-colors duration-150 ${idx === activeIndex ? 'text-primary animate-pulse' : 'text-slate-400'}`} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm font-semibold truncate ${idx === activeIndex ? 'text-white' : 'text-slate-200'}`}>

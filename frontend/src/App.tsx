@@ -1,13 +1,14 @@
 import React from 'react';
 import { Router } from '@/Router';
 import { ToastProvider } from '@/components/ui/Toast';
+import { ToastContainer } from '@/components/ui/ToastContainer';
 import '@/index.css';
 
 function App() {
-    // Force reload after router changes
   return (
     <ToastProvider>
       <Router />
+      <ToastContainer />
     </ToastProvider>
   );
 }

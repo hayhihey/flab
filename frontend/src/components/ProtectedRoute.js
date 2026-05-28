@@ -17,6 +17,23 @@ export const ProtectedRoute = ({ children, requiredRole, }) => {
             navigate('/auth');
         }
     }, [isAuthenticated, role, requiredRole, navigate]);
+    // Emergency check on mount - get state immediately
+    useEffect(() => {
+        loadFromStorage();
+        const state = useAuthStore.getState();
+        console.log('🔐 Protected Route check:', { isAuth: state.isAuthenticated, role: state.role, requiredRole });
+        if (!state.isAuthenticated) {
+            console.log('❌ Not authenticated, redirecting');
+            navigate('/auth');
+        }
+        else if (requiredRole && state.role !== requiredRole) {
+            console.log('❌ Role mismatch:', state.role, 'vs', requiredRole);
+            navigate('/auth');
+        }
+        else {
+            console.log('✅ Route authorized');
+        }
+    }, [requiredRole]);
     if (!isAuthenticated) {
         return null;
     }

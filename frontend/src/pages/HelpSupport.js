@@ -51,7 +51,7 @@ export const HelpSupport = () => {
             icon: _jsx(Mail, { className: "w-6 h-6" }),
             title: 'Email Us',
             description: 'Get response in 24 hours',
-            action: 'support@ridehub.com',
+            action: 'support@ridehub.dev',
             color: 'from-purple-500 to-pink-500',
         },
         {
